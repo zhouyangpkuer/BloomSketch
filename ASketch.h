@@ -1,5 +1,5 @@
 #include "params.h"
-#include "BOBHash.h"
+#include "BOBHash32.h"
 #include <string.h>
 #include <algorithm>
 using namespace std;
@@ -13,7 +13,7 @@ private:
 	char **items;
 	int *counter[MAX_HASH_NUM];
 	int MAX_CNT;
-	BOBHash *bobhash[MAX_HASH_NUM];
+	BOBHash32 *bobhash[MAX_HASH_NUM];
 
 public:
 	int mem_acc_ins, mem_acc_query;
@@ -33,7 +33,7 @@ public:
 
 		for(int i = 0; i < d; i++)
 		{
-			bobhash[i] = new BOBHash(i + 1000);
+			bobhash[i] = new BOBHash32(i + 1000);
 		}
 
 		items = new char *[FILTER_SIZE];

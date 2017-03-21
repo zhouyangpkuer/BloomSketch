@@ -5,7 +5,7 @@
 #include <cstring>
 #include <string.h>
 #include "params.h"
-#include "BOBHash.h"
+#include "BOBHash32.h"
 #include <iostream>
 #include <algorithm>
 using namespace std;
@@ -13,7 +13,7 @@ using namespace std;
 class CSketch
 {	
 private:
-	BOBHash * bobhash[MAX_HASH_NUM * 2];
+	BOBHash32 * bobhash[MAX_HASH_NUM * 2];
 	int index[MAX_HASH_NUM];
 	int *counter[MAX_HASH_NUM];
 	int w, d;
@@ -43,7 +43,7 @@ public:
 
 		for(int i = 0; i < d * 2; i++)
 		{
-			bobhash[i] = new BOBHash(i + 1000);
+			bobhash[i] = new BOBHash32(i + 1000);
 		}
 	}
 	void Insert(const char * str)

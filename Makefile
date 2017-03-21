@@ -3,7 +3,8 @@ PROGRAMS = main
 
 all: $(PROGRAMS)
 
-main:main.cpp params.h BOBHash.h ASketch.h CMSketch.h CUSketch.h CSketch.h BloomSketch.h BCMSketch.h
+main:main.cpp params.h BOBHash32.h ASketch.h CMSketch.h CUSketch.h CSketch.h BloomSketch.h \
+	g_BloomSketch.h
 	g++ -o main main.cpp $(CPPFLAGS)
 
 clean:

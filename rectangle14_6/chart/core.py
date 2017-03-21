@@ -19,8 +19,10 @@ class DrawingCore:
         self.legends = []
         # self.point_types = ['o-', 's-', 'p-', '^-', '*-', 'H-', 'd-', 'h-', '<-', '2-', 'v-']
         self.colors = ['r', '#00FF00', 'b', '#FF00FF','w',  'y', 'c']
+ 
 
-        self.point_types = ['gs-', 'r^-', 'bo-', '^-', '*-', 'H-', 'd-', 'h-', '<-', '2-', 'v-']
+        self.point_types = ['rs-', 'g^-', 'bo-', 'mp-', '*-', 'H-', 'd-', 'h-', '<-', '2-', 'v-']
+        # self.point_types = ['gs-', 'r^-', 'bo-', '^-', '*-', 'H-', 'd-', 'h-', '<-', '2-', 'v-']
         # self.point_types = ['bo-', 'gs-', 'r^-', '^-', '*-', 'H-', 'd-', 'h-', '<-', '2-', 'v-']
 
         # self.colors = ['g', 'g', 'g', 'g', 'g', 'g', 'g']
@@ -102,8 +104,8 @@ class DrawingCore:
 
         plt.xlabel(self.x_label)
         plt.ylabel(self.y_label)
-        # plt.legend(loc='best', ncol=6, mode='expand')
-        plt.legend(loc='best', ncol=2)
+        plt.legend(loc='best', ncol=4, mode='expand')
+        # plt.legend(loc='best', ncol=2)
         
         # plt.legend(loc='best')
         # plt.legend(loc='lower right')

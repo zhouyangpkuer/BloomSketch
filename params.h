@@ -16,7 +16,6 @@
 #define COEF 0.618
 
 #define WORD_SIZE 64
-// #define COUNTER_SIZE 16
 #define COUNTER_SIZE 16
 
 #define LOW_COUNTER_SIZE 4
