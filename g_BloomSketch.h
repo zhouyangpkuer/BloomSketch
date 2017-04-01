@@ -34,9 +34,12 @@ private:
 	int num_layer;
 
 public:
-
+	int man_insert, man_query;
 	g_BloomSketch(int _num_layer, int* _w, int* _d, int* _w_bf, int* _size_counter)
 	{
+		man_insert = 0;
+		man_query = 0;
+
 		num_layer = _num_layer;
 		counter = new uint16 *[num_layer];
 		bf = new uint64 *[num_layer - 1];
@@ -82,11 +85,15 @@ public:
 
 		for(int i = 0; i < d[id]; i++)
 		{
+			man_insert ++;
+
 			index[i] = (bobhash[cumu + i]->run(str, strlen(str))) % w[id];
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
 		}
 		if(min_value == ((1 << size_counter[id]) - 1))
 		{
+			man_insert ++;
+
 			for(int i = 0; i < d[id]; i++)
 			{
 				counter[id][index[i]] = 0;
@@ -142,6 +149,8 @@ public:
 
 		for(int i = 0; i < d[id]; i++)
 		{
+			man_query ++;
+
 			index[i] = (bobhash[cumu + i]->run(str, strlen(str))) % w[id];
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
 		}
@@ -158,8 +167,10 @@ public:
 		word_index[0] = (hash_value & 0xFFFF) % (w_bf[id] >> 6);
 		hash_value >>= 16;
 
+		man_query ++;
+
 		for(int i = 0; i < d[id]; i++)
-		{
+		{			
 			offset[i] = (hash_value & 0x3F);
 			hash_value >>= 6;
 			// if(bf[id][(word_index[0] << 6) + offset[i]] == 0)
