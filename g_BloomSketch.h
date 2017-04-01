@@ -33,6 +33,10 @@ private:
 
 	int num_layer;
 
+	uint Hash_res[MAX_HASH_NUM];
+	int max_d;
+	uint64 Hash_resbf;
+
 public:
 	int man_insert, man_query;
 	g_BloomSketch(int _num_layer, int* _w, int* _d, int* _w_bf, int* _size_counter)
@@ -60,34 +64,29 @@ public:
 			bf[i] = new uint64[w_bf[i] >> 6];	
 			memset(bf[i], 0, sizeof(uint64) * (w_bf[i] >> 6));
 		}
-		int cumu = 0;
+		max_d = 0;
 		for(int i = 0; i < num_layer; i++)
 		{
-			for(int j = 0; j < d[i]; j++)
-			{
-				bobhash[j + cumu] = new BOBHash32(cumu + j);
-			}
-			cumu += d[i];
-			bobhash_bf[i] = new BOBHash64(500 + i);
+			max_d = (max_d > d[i] ? max_d : d[i]);
 		}
+
+		for(int i = 0; i < max_d; i++)
+		{
+			bobhash[i] = new BOBHash32(i);
+		}
+		bobhash_bf[0] = new BOBHash64(500);
+
 	}
 	//true: overflow
 	bool layer_insert(const char * str, int id)
 	{
-		int cumu = 0;
-		for(int i = 0; i < id; i++)
-		{
-			cumu += d[i];
-		}
-
 		int min_value = (1 << 30);
 		int index[MAX_HASH_NUM];
 
 		for(int i = 0; i < d[id]; i++)
 		{
 			man_insert ++;
-
-			index[i] = (bobhash[cumu + i]->run(str, strlen(str))) % w[id];
+			index[i] = Hash_res[i] % w[id];
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
 		}
 		if(min_value == ((1 << size_counter[id]) - 1))
@@ -103,7 +102,7 @@ public:
 			int word_index[MAX_HASH_NUM];
 			int offset[MAX_HASH_NUM];
 
-			uint64 hash_value = bobhash_bf[id]->run(str, strlen(str));
+			uint64 hash_value = Hash_resbf;
 			word_index[0] = (hash_value & 0xFFFF) % (w_bf[id] >> 6);
 			hash_value >>= 16;
 
@@ -111,7 +110,6 @@ public:
 			{
 				offset[i] = (hash_value & 0x3F);
 				hash_value >>= 6;
-				// bf[id][(word_index[0] << 6) + offset[i]] = 1;
 				bf[id][word_index[0]] |= ((uint64)1 << offset[i]);
 			}
 
@@ -127,6 +125,12 @@ public:
 
 	void Insert(const char * str)
 	{
+		for(int i = 0; i < max_d; i++)
+		{
+			Hash_res[i] = bobhash[i]->run(str, strlen(str));
+		}
+		Hash_resbf = bobhash_bf[0]->run(str, strlen(str));
+
 		int id = 0;
 		while(layer_insert(str, id) == true)
 		{
@@ -137,13 +141,6 @@ public:
 	//true: overflow
 	bool layer_query(const char *str, int id, int *result)
 	{
-		int cumu = 0;
-		for(int i = 0; i < id; i++)
-		{
-			cumu += d[i]; 
-		}
-
-
 		int min_value = (1 << 30);
 		int index[MAX_HASH_NUM];
 
@@ -151,7 +148,7 @@ public:
 		{
 			man_query ++;
 
-			index[i] = (bobhash[cumu + i]->run(str, strlen(str))) % w[id];
+			index[i] = Hash_res[i] % w[id];
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
 		}
 		*result = min_value;
@@ -163,7 +160,7 @@ public:
 		int word_index[MAX_HASH_NUM];
 		int offset[MAX_HASH_NUM];
 
-		uint64 hash_value = bobhash_bf[id]->run(str, strlen(str));
+		uint64 hash_value = Hash_resbf;
 		word_index[0] = (hash_value & 0xFFFF) % (w_bf[id] >> 6);
 		hash_value >>= 16;
 
@@ -173,7 +170,6 @@ public:
 		{			
 			offset[i] = (hash_value & 0x3F);
 			hash_value >>= 6;
-			// if(bf[id][(word_index[0] << 6) + offset[i]] == 0)
 			if(((bf[id][word_index[0]] >> offset[i]) & 1) == 0)
 				return false;
 		}
@@ -183,6 +179,12 @@ public:
 
 	int Query(const char *str)
 	{
+		for(int i = 0; i < max_d; i++)
+		{
+			Hash_res[i] = bobhash[i]->run(str, strlen(str));
+		}
+		Hash_resbf = bobhash_bf[0]->run(str, strlen(str));
+
 		int final_result = 0, temp = 0;
 		int id = 0;
 		int cumu_size = 0;

@@ -175,9 +175,9 @@ int main(int argc, char** argv)
 
     int number_layer = 4;
     int W[] = {w_1, w_2, w_3, w_4};
-    // int D[] = {4, 4, 4, 4};
+    int D[] = {4, 4, 4, 4};
     // int D[] = {3, 3, 3, 3};
-    int D[] = {2, 2, 2, 2};
+    // int D[] = {2, 2, 2, 2};
 
     int W_BF[] = {w_1_bf, w_2_bf, w_3_bf};
     int SIZE_COUNTER[] = {4, 4, 4, 4};
