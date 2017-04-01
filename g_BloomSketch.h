@@ -102,6 +102,9 @@ public:
 			int word_index[MAX_HASH_NUM];
 			int offset[MAX_HASH_NUM];
 
+			if(id == 0)
+				Hash_resbf = bobhash_bf[0]->run(str, strlen(str));
+
 			uint64 hash_value = Hash_resbf;
 			word_index[0] = (hash_value & 0xFFFF) % (w_bf[id] >> 6);
 			hash_value >>= 16;
@@ -129,7 +132,6 @@ public:
 		{
 			Hash_res[i] = bobhash[i]->run(str, strlen(str));
 		}
-		Hash_resbf = bobhash_bf[0]->run(str, strlen(str));
 
 		int id = 0;
 		while(layer_insert(str, id) == true)
