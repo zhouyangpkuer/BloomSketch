@@ -8,10 +8,10 @@ class ASketch
 {
 private:
 	int w, d;
-	int *new_count;
-	int *old_count;
+	uint16_t *new_count;
+	uint16_t *old_count;
 	char **items;
-	int *counter[MAX_HASH_NUM];
+	uint16_t *counter[MAX_HASH_NUM];
 	int MAX_CNT;
 	BOBHash32 *bobhash[MAX_HASH_NUM];
 
@@ -25,8 +25,8 @@ public:
 		d = _d;
 		for(int i = 0; i < d; i++)	
 		{
-			counter[i] = new int[w];
-			memset(counter[i], 0, sizeof(int) * w);
+			counter[i] = new uint16_t[w];
+			memset(counter[i], 0, sizeof(uint16_t) * w);
 		}
 
 		MAX_CNT = (1 << COUNTER_SIZE) - 1;
@@ -43,10 +43,10 @@ public:
 			items[i][0] = '\0';
 		}
 
-		new_count = new int[FILTER_SIZE];
-		old_count = new int[FILTER_SIZE];
-		memset(new_count, 0, sizeof(int) * FILTER_SIZE);
-		memset(old_count, 0, sizeof(int) * FILTER_SIZE);
+		new_count = new uint16_t[FILTER_SIZE];
+		old_count = new uint16_t[FILTER_SIZE];
+		memset(new_count, 0, sizeof(uint16_t) * FILTER_SIZE);
+		memset(old_count, 0, sizeof(uint16_t) * FILTER_SIZE);
 		// printf("succes\n");
 	}
 	int find_element_in_filter(const char *str)
@@ -91,11 +91,11 @@ public:
 			for(int i = 0; i < d; i++)
 			{
 				hash_value = (bobhash[i]->run(str, strlen(str))) % w;
-				if(counter[i][hash_value] != MAX_CNT)
-				{
+				// if(counter[i][hash_value] != MAX_CNT)
+				// {
 					counter[i][hash_value] ++;
 					estimate_value = estimate_value < counter[i][hash_value] ? estimate_value : counter[i][hash_value];
-				}
+				// }
 				mem_acc_ins++;
 			}
 			min_index = 0;

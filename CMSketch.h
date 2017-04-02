@@ -15,7 +15,7 @@ class CMSketch
 private:
 	BOBHash32 * bobhash[MAX_HASH_NUM];
 	int index[MAX_HASH_NUM];
-	int *counter[MAX_HASH_NUM];
+	uint16_t *counter[MAX_HASH_NUM];
 	int w, d;
 	int MAX_CNT;
 	int counter_index_size;
@@ -33,8 +33,8 @@ public:
 		
 		for(int i = 0; i < d; i++)	
 		{
-			counter[i] = new int[w];
-			memset(counter[i], 0, sizeof(int) * w);
+			counter[i] = new uint16_t[w];
+			memset(counter[i], 0, sizeof(uint16_t) * w);
 		}
 
 		MAX_CNT = (1 << COUNTER_SIZE) - 1;
@@ -60,10 +60,10 @@ public:
 		for(int i = 0; i < d; i++)
 		{
 			index[i] = (bobhash[i]->run(str, strlen(str))) % w;
-			if(counter[i][index[i]] != MAX_CNT)
-			{
-				counter[i][index[i]]++;
-			}
+			// if(counter[i][index[i]] != MAX_CNT)
+			// {
+			counter[i][index[i]]++;
+			// }
 			mem_acc_ins ++;
 
 		}
