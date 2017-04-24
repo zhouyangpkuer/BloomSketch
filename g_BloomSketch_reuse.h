@@ -1,5 +1,5 @@
-#ifndef _G_BLOOMSKETCH_H
-#define _G_BLOOMSKETCH_H
+#ifndef _G_BLOOMSKETCH_REUSE_H
+#define _G_BLOOMSKETCH_REUSE_H
 
 #include <algorithm>
 #include <cstring>
@@ -19,8 +19,8 @@ typedef unsigned short int uint16;
 class g_BloomSketch
 {	
 private:
-	BOBHash32 * bobhash[MAX_HASH_NUM][MAX_HASH_NUM];
-	BOBHash32 * bobhash_bf[MAX_HASH_NUM][MAX_HASH_NUM];
+	BOBHash32 * bobhash[MAX_HASH_NUM];
+	BOBHash32 * bobhash_bf[MAX_HASH_NUM];
 	
 	uint16 **counter;
 	uint64 **bf;
@@ -72,13 +72,10 @@ public:
 		}
 
 
-		for(int i = 0; i < max_d; i++)
+		for(int i = 0; i < MAX_HASH_NUM; i++)
 		{
-			for(int j = 0; j < MAX_HASH_NUM; j++)
-			{
-				bobhash[i][j] = new BOBHash32(i * MAX_HASH_NUM + j);
-				bobhash_bf[i][j] = new BOBHash32(i * MAX_HASH_NUM + j + 500);
-			}
+			bobhash[i] = new BOBHash32(i);
+			bobhash_bf[i] = new BOBHash32(i + 500);
 		}
 	}
 	//true: overflow
@@ -87,10 +84,17 @@ public:
 		int min_value = (1 << 30);
 		int index[MAX_HASH_NUM];
 
+		if(id == 0)
+		{
+			for(int i = 0; i < max_d; i++)
+			{
+				Hash_res[i] = bobhash[i]->run(str, strlen(str));
+			}
+		}
+
 		for(int i = 0; i < d[id]; i++)
 		{
 			man_insert ++;
-			Hash_res[i] = bobhash[id][i]->run(str, strlen(str));
 
 			index[i] = Hash_res[i] % w[id];
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
@@ -100,13 +104,20 @@ public:
 			int word_index[MAX_HASH_NUM];
 			int offset[MAX_HASH_NUM];
 
+			if(id == 0)
+			{
+				for(int i = 0; i < max_d; i++)
+				{
+					Hash_resbf[i] = bobhash_bf[i]->run(str, strlen(str));
+				}
+			}
+
 			for(int i = 0; i < d[id]; i++)
 			{
 				counter[id][index[i]] = 0;
 
 				man_insert ++;
 
-				Hash_resbf[i] = bobhash_bf[id][i]->run(str, strlen(str));
 				index[i] = Hash_resbf[i] % w_bf[id];
 				
 				word_index[i] = index[i] >> 6;
@@ -138,11 +149,18 @@ public:
 	{
 		int min_value = (1 << 30);
 		int index[MAX_HASH_NUM];
-
+		
+		if(id == 0)
+		{
+			for(int i = 0; i < max_d; i++)
+			{
+				Hash_res[i] = bobhash[i]->run(str, strlen(str));
+			}
+		}
+		
 		for(int i = 0; i < d[id]; i++)
 		{
 			man_query ++;
-			Hash_res[i] = bobhash[id][i]->run(str, strlen(str));
 			index[i] = Hash_res[i] % w[id];
 			
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
@@ -161,7 +179,9 @@ public:
 		{
 			man_query ++;
 
-			Hash_resbf[i] = bobhash_bf[id][i]->run(str, strlen(str));
+			if(id == 0)
+				Hash_resbf[i] = bobhash_bf[i]->run(str, strlen(str));
+
 			index[i] = Hash_resbf[i] % w_bf[id];
 			
 			word_index[i] = index[i] >> 6;
@@ -196,4 +216,4 @@ public:
 	~g_BloomSketch();
 };
 
-#endif//_G_BLOOMSKETCH_H
+#endif//_G_BLOOMSKETCH_REUSE_H

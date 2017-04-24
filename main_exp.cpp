@@ -15,12 +15,7 @@
 #include "CUSketch.h"
 #include "CSketch.h"
 #include "BloomSketch.h"
-
-// #include "g_BloomSketch.h"
-// #include "g_BloomSketch_omabf.h"
-// #include "g_BloomSketch_reuse.h"
-#include "g_BloomSketch_omabf_reuse.h"
-
+#include "g_BloomSketch.h"
 
 // #define layer2
 // #define layer3
@@ -213,6 +208,8 @@ int main(int argc, char** argv)
     double ae_cm = 0.0, ae_cu = 0.0, ae_c = 0.0, ae_a = 0.0, ae_bs = 0.0, ae_bcm = 0.0, ae_gbs = 0.0;
     double ae_cm_sum = 0.0, ae_cu_sum = 0.0, ae_c_sum = 0.0, ae_a_sum = 0.0, ae_bs_sum = 0.0, ae_bcm_sum = 0.0, ae_gbs_sum = 0.0;
 
+    double sum_cm = 0.0, sum_cu = 0.0, sum_c = 0.0, sum_a = 0.0, sum_bs = 0.0, sum_bcm = 0.0, sum_gbs = 0.0;
+
 	int val_cm = 0, val_cu = 0, val_c = 0, val_a = 0, val_bs = 0, val_bcm = 0, val_gbs = 0;
     
     int max_val = 0;
@@ -240,15 +237,29 @@ int main(int argc, char** argv)
         val_gbs = gbs->Query(temp);
 
 
+
+        sum_cm += (val_cm + val) / 2.0;
+        sum_cu += (val_cu + val) / 2.0;
+        sum_c += (val_c + val) / 2.0;
+        sum_a += (val_a + val) / 2.0;
+        sum_bs += (val_bs + val) / 2.0;
+        sum_gbs += (val_gbs + val) / 2.0;
+
  	    
 
-        re_cm = fabs(val_cm - val) / (val * 1.0);
-        re_cu = fabs(val_cu - val) / (val * 1.0);
-        re_c = fabs(val_c - val) / (val * 1.0);
-        re_a = fabs(val_a - val) / (val * 1.0);
-        re_bs = fabs(val_bs - val) / (val * 1.0);
-        re_gbs = fabs(val_gbs - val) / (val * 1.0);
+        re_cm = fabs(val_cm - val) / (val * 1.0 + val_cm) * 2;
+        re_cu = fabs(val_cu - val) / (val * 1.0 + val_cu) * 2;
+        re_c = fabs(val_c - val) / (val * 1.0 + val_c) * 2;
+        re_a = fabs(val_a - val) / (val * 1.0 + val_a) * 2;
+        re_bs = fabs(val_bs - val) / (val * 1.0 + val_bs) * 2;
+        re_gbs = fabs(val_gbs - val) / (val * 1.0 + val_gbs) * 2;
 
+        // re_cm = fabs(val_cm - val) / (val * 1.0);
+        // re_cu = fabs(val_cu - val) / (val * 1.0);
+        // re_c = fabs(val_c - val) / (val * 1.0);
+        // re_a = fabs(val_a - val) / (val * 1.0);
+        // re_bs = fabs(val_bs - val) / (val * 1.0);
+        // re_gbs = fabs(val_gbs - val) / (val * 1.0);
 
         
         ae_cm = fabs(val_cm - val);
@@ -300,12 +311,12 @@ int main(int argc, char** argv)
 
 
     
-    fprintf(stderr, "\nae_cm %lf\n", ae_cm_sum / b);
-    fprintf(stderr, "ae_cu %lf\n", ae_cu_sum / b);
-    fprintf(stderr, "ae_c %lf\n", ae_c_sum / b);
-    fprintf(stderr, "ae_a %lf\n", ae_a_sum / b);
-    fprintf(stderr, "ae_bs %lf\n", ae_bs_sum / b);
-    fprintf(stderr, "ae_gbs %lf\n", ae_gbs_sum / b);
+    fprintf(stderr, "\nae_cm %lf\n", ae_cm_sum / sum_cm);
+    fprintf(stderr, "ae_cu %lf\n", ae_cu_sum / sum_cm);
+    fprintf(stderr, "ae_c %lf\n", ae_c_sum / sum_cm);
+    fprintf(stderr, "ae_a %lf\n", ae_a_sum / sum_cm);
+    fprintf(stderr, "ae_bs %lf\n", ae_bs_sum / sum_cm);
+    fprintf(stderr, "ae_gbs %lf\n", ae_gbs_sum / sum_cm);
     
     printf("\nman_insert %lf\n", bs->man_insert * 1.0 / a);
     printf("man_query %lf\n", bs->man_query * 1.0 / b);

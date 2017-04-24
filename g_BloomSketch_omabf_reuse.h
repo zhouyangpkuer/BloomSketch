@@ -1,5 +1,5 @@
-#ifndef _G_BLOOMSKETCH_H
-#define _G_BLOOMSKETCH_H
+#ifndef _G_BLOOMSKETCH_OMABF_REUSE_H
+#define _G_BLOOMSKETCH_OMABF_REUSE_H
 
 #include <algorithm>
 #include <cstring>
@@ -19,8 +19,8 @@ typedef unsigned short int uint16;
 class g_BloomSketch
 {	
 private:
-	BOBHash32 * bobhash[MAX_HASH_NUM][MAX_HASH_NUM];
-	BOBHash32 * bobhash_bf[MAX_HASH_NUM][MAX_HASH_NUM];
+	BOBHash32 * bobhash[MAX_HASH_NUM];
+	BOBHash64 * bobhash_bf[MAX_HASH_NUM];
 	
 	uint16 **counter;
 	uint64 **bf;
@@ -34,8 +34,8 @@ private:
 	int num_layer;
 
 	uint Hash_res[MAX_HASH_NUM];
-	uint Hash_resbf[MAX_HASH_NUM];
 	int max_d;
+	uint64 Hash_resbf;
 
 public:
 	int man_insert, man_query;
@@ -64,22 +64,18 @@ public:
 			bf[i] = new uint64[w_bf[i] >> 6];	
 			memset(bf[i], 0, sizeof(uint64) * (w_bf[i] >> 6));
 		}
-		
 		max_d = 0;
 		for(int i = 0; i < num_layer; i++)
 		{
 			max_d = (max_d > d[i] ? max_d : d[i]);
 		}
 
-
 		for(int i = 0; i < max_d; i++)
 		{
-			for(int j = 0; j < MAX_HASH_NUM; j++)
-			{
-				bobhash[i][j] = new BOBHash32(i * MAX_HASH_NUM + j);
-				bobhash_bf[i][j] = new BOBHash32(i * MAX_HASH_NUM + j + 500);
-			}
+			bobhash[i] = new BOBHash32(i);
 		}
+		bobhash_bf[0] = new BOBHash64(500);
+
 	}
 	//true: overflow
 	bool layer_insert(const char * str, int id)
@@ -90,28 +86,34 @@ public:
 		for(int i = 0; i < d[id]; i++)
 		{
 			man_insert ++;
-			Hash_res[i] = bobhash[id][i]->run(str, strlen(str));
-
 			index[i] = Hash_res[i] % w[id];
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
 		}
 		if(min_value == ((1 << size_counter[id]) - 1))
 		{
-			int word_index[MAX_HASH_NUM];
-			int offset[MAX_HASH_NUM];
+			man_insert ++;
 
 			for(int i = 0; i < d[id]; i++)
 			{
 				counter[id][index[i]] = 0;
+			}
 
-				man_insert ++;
 
-				Hash_resbf[i] = bobhash_bf[id][i]->run(str, strlen(str));
-				index[i] = Hash_resbf[i] % w_bf[id];
-				
-				word_index[i] = index[i] >> 6;
-				offset[i] =  index[i] & 0x3F;
-				bf[id][word_index[i]] |= ((uint64)1 << offset[i]);
+			int word_index[MAX_HASH_NUM];
+			int offset[MAX_HASH_NUM];
+
+			if(id == 0)
+				Hash_resbf = bobhash_bf[0]->run(str, strlen(str));
+
+			uint64 hash_value = Hash_resbf;
+			word_index[0] = (hash_value & 0xFFFF) % (w_bf[id] >> 6);
+			hash_value >>= 16;
+
+			for(int i = 0; i < d[id]; i++)
+			{
+				offset[i] = (hash_value & 0x3F);
+				hash_value >>= 6;
+				bf[id][word_index[0]] |= ((uint64)1 << offset[i]);
 			}
 
 			return true;
@@ -126,6 +128,11 @@ public:
 
 	void Insert(const char * str)
 	{
+		for(int i = 0; i < max_d; i++)
+		{
+			Hash_res[i] = bobhash[i]->run(str, strlen(str));
+		}
+
 		int id = 0;
 		while(layer_insert(str, id) == true)
 		{
@@ -142,9 +149,8 @@ public:
 		for(int i = 0; i < d[id]; i++)
 		{
 			man_query ++;
-			Hash_res[i] = bobhash[id][i]->run(str, strlen(str));
+
 			index[i] = Hash_res[i] % w[id];
-			
 			min_value = min_value < counter[id][index[i]] ? min_value : counter[id][index[i]];
 		}
 		*result = min_value;
@@ -156,18 +162,17 @@ public:
 		int word_index[MAX_HASH_NUM];
 		int offset[MAX_HASH_NUM];
 
+		uint64 hash_value = Hash_resbf;
+		word_index[0] = (hash_value & 0xFFFF) % (w_bf[id] >> 6);
+		hash_value >>= 16;
+
+		man_query ++;
 
 		for(int i = 0; i < d[id]; i++)
-		{
-			man_query ++;
-
-			Hash_resbf[i] = bobhash_bf[id][i]->run(str, strlen(str));
-			index[i] = Hash_resbf[i] % w_bf[id];
-			
-			word_index[i] = index[i] >> 6;
-			offset[i] =  index[i] & 0x3F;
-			
-			if(((bf[id][word_index[i]] >> offset[i]) & 1) == 0)
+		{			
+			offset[i] = (hash_value & 0x3F);
+			hash_value >>= 6;
+			if(((bf[id][word_index[0]] >> offset[i]) & 1) == 0)
 				return false;
 		}
 		return true;
@@ -176,6 +181,12 @@ public:
 
 	int Query(const char *str)
 	{
+		for(int i = 0; i < max_d; i++)
+		{
+			Hash_res[i] = bobhash[i]->run(str, strlen(str));
+		}
+		Hash_resbf = bobhash_bf[0]->run(str, strlen(str));
+
 		int final_result = 0, temp = 0;
 		int id = 0;
 		int cumu_size = 0;
@@ -196,4 +207,4 @@ public:
 	~g_BloomSketch();
 };
 
-#endif//_G_BLOOMSKETCH_H
+#endif//_G_BLOOMSKETCH_OMABF_REUSE_H
